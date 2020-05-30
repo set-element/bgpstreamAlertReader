@@ -22,3 +22,16 @@ Output is in two forms - informational junk to stdout which will report both out
 create bgpstream database
 table:
 
+        CREATE TABLE twitterfeed (
+            ts VARCHAR(32),
+            ts_record VARCHAR(32),
+            rtype VARCHAR(8),
+            own_name VARCHAR(128),
+            own_net VARCHAR(32),
+            own_as INT,
+            own_nc INT,
+            hijack_name VARCHAR(128),
+            hijack_as  INT,
+            link VARCHAR(64)
+        )
+

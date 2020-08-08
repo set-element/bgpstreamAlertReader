@@ -69,61 +69,65 @@ stream = TwitterStream(auth = auth, secure = True)
 tweet_iter = stream.statuses.filter(follow="3237083798")
 
 for tweet in tweet_iter:
-    # turn the date string into a date object that python can handle
-    try:
-        ca_date = tweet["created_at"]
-    except KeyError as e:
-        print(e)
-        continue
 
-    timestamp = parsedate(ca_date)
+    # test for hangup message: {'hangup': True}
+    if len(tweet) > 2:
 
-    # now format this nicely into HH:MM:SS format
-    timetext = strftime("%H:%M:%S", timestamp)
-
-    try:
-        t_text = tweet["text"]
-    except KeyError as e:
-        print(e)
-        continue
-
-    # convert the newline into a space cause human communication
-    t_text = t_text.replace("\n"," ")
-
-    # This is mostly for debug
-    print(t_text)
-
-    # Parse the raw text into "," bits
-    # Each hijacked netblock gets it's own message which is nice
-    t_text_p = t_text.split(",")
-    nttp = len(t_text_p)
-
-    if ( len(t_text_p) < 7 ):
+        # turn the date string into a date object that python can handle
+        try:
+            ca_date = tweet["created_at"]
+        except KeyError as e:
+            print(e)
             continue
 
-    verb = t_text_p[1]         # 'HJ'
+        timestamp = parsedate(ca_date)
 
+        # now format this nicely into HH:MM:SS format
+        timetext = strftime("%H:%M:%S", timestamp)
 
-    if (verb == "HJ"):
-
-        skip = 0
-        stolen = t_text_p[2]       # 'hijacked prefix AS39120 185.104.125.248/32'
-        AS = t_text.split(",By AS")[1].split()[0]
-        realtime = datetime.datetime.now().isoformat()
-
-        # Extract the prefix - should always be the last string
-        stolen_c = stolen.split()
-        netblock = stolen_c[len(stolen_c)-1]
-
-        # If the AS can't be expressed as an int there is something
-        #  really weird going on and we move along ....
         try:
-            int(AS)
-        except ValueError:
-            skip = 1
+            t_text = tweet["text"]
+        except KeyError as e:
+            print(e)
+            continue
 
-        if ( skip == 0 ):
-            logentry = realtime + "," + timetext + "," + AS + "," + netblock + "\n"
-            logfile.write(logentry)
-            # for the inpatient humans in the crowd
-            print(realtime,timetext,AS,netblock)
+        # convert the newline into a space cause human communication
+        t_text = t_text.replace("\n"," ")
+
+        # This is mostly for debug
+        print(t_text)
+
+        # Parse the raw text into "," bits
+        # Each hijacked netblock gets it's own message which is nice
+        t_text_p = t_text.split(",")
+        nttp = len(t_text_p)
+
+        if ( len(t_text_p) < 7 ):
+                continue
+    
+        verb = t_text_p[1]         # 'HJ'
+
+
+        if (verb == "HJ"):
+
+            skip = 0
+            stolen = t_text_p[2]       # 'hijacked prefix AS39120 185.104.125.248/32'
+            AS = t_text.split(",By AS")[1].split()[0]
+            realtime = datetime.datetime.now().isoformat()
+
+            # Extract the prefix - should always be the last string
+            stolen_c = stolen.split()
+            netblock = stolen_c[len(stolen_c)-1]
+
+            # If the AS can't be expressed as an int there is something
+            #  really weird going on and we move along ....
+            try:
+                int(AS)
+            except ValueError:
+                skip = 1
+
+            if ( skip == 0 ):
+                logentry = realtime + "," + timetext + "," + AS + "," + netblock + "\n"
+                logfile.write(logentry)
+                # for the inpatient humans in the crowd
+                print(realtime,timetext,AS,netblock)
